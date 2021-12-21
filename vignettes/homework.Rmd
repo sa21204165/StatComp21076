@@ -1,0 +1,1353 @@
+---
+title: "homework"
+author: "Qingguo Wu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{homework}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+9-16
+ 
+## Question
+Use knitr to produce at least 3 examples(texts, figures, tables).
+
+## Answers
+1:(Text examples)
+
+$$Z = X +Y$$
+
+
+2:(Figure examples)
+```{r,eval=FALSE}
+ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group <- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight <- c(ctl, trt)
+lm.D9 <- lm(weight ~ group)
+par(mfrow=c(2,2))
+plot(lm.D9)
+``` 
+
+
+3:(Table examples)
+
+
+```{r,eval=FALSE}
+set.seed(123)
+
+X = array(rnorm(25),dim = c(5,5))
+X
+```
+
+9-23
+
+## Question 3-4
+
+
+Develop an algorithm to generate random samples from a Rayleigh$(\sigma)$ distribution for several choices of $\sigma>0$ and check that the mode of the generated samples is close to the theoretical mode $\sigma$. The Rayleigh density is 
+$$
+f(x) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}, \quad x\ge 0, \sigma>0.
+$$
+
+\textbf{Solution}: we use the inverse transform method since it is easy to calculate the cdf.
+
+$$
+F(x) = \int_{0}^x f(t)d t = \int_{0}^x\frac{t}{\sigma^2}e^{-t^2/(2\sigma^2)}dt= 1 - e^{-x^2/(2\sigma^2)}.
+$$
+
+$$
+F^{-1}(u) = \sqrt{-2\log(1-u)}\sigma, 0<u<1.
+$$
+
+```{r,eval=FALSE}
+par(mfrow = c(2,2))
+n = 10
+sigma = 1
+U = runif(n, 0, 1)
+X = sqrt(-2*log(1-U))*sigma
+hist(X, main = "Histogram of Rayleigh (sigma = 1)")
+abline(v = sigma, col = "red")
+sigma = 2
+U = runif(n, 0, 1)
+X = sqrt(-2*log(1-U))*sigma
+hist(X, main = "Histogram of Rayleigh (sigma = 2)")
+abline(v = sigma, col = "red")
+sigma = 0.5
+U = runif(n, 0, 1)
+X = sqrt(-2*log(1-U))*sigma
+hist(X, main = "Histogram of Rayleigh (sigma = 0.5)")
+abline(v = sigma, col = "red")
+sigma = 5
+U = runif(n, 0, 1)
+X = sqrt(-2*log(1-U))*sigma
+hist(X, main = "Histogram of Rayleigh (sigma = 5)")
+abline(v = sigma, col = "red")
+```
+
+As the plot shows, the mode of the generated samples(highest density) is close to the theoretical mode.
+
+
+
+## Question 3-11
+
+```{r,eval=FALSE}
+n = 1000
+samp = function(p1){
+  U = runif(1, 0, 1)
+  if(U < p1){
+    x = rnorm(1,0,1)
+  }else{
+    x = rnorm(1,3,1)
+  }
+  return(x)
+}
+pdf = function(x, p1 = p1){
+  p1*dnorm(x, 0, 1) + (1-p1)*dnorm(x, 3, 1)
+}
+
+par(mfrow = c(2,2))
+p1 = 0.75
+X = replicate(n, samp(p1 = p1))
+hist(X,breaks = 50, xlim = c(-4, 6), prob = T, main = "Histogram of  Mix-Gaussian (p = 0.75)")
+curve(pdf(x, p1 = p1), -4, 6, col = "red", add = T)
+
+p1 = 0.5
+X = replicate(n, samp(p1 = p1))
+hist(X,breaks = 50, xlim = c(-4, 6), prob = T, main = "Histogram of  Mix-Gaussian (p = 0.5)")
+curve(pdf(x, p1 = p1), -4, 6, col = "red", add = T)
+
+p1 = 0.25
+X = replicate(n, samp(p1 = p1))
+hist(X,breaks = 50, xlim = c(-4, 6), prob = T, main = "Histogram of  Mix-Gaussian (p = 0.25)")
+curve(pdf(x, p1 = p1), -4, 6, col = "red", add = T)
+
+p1 = 0.9
+X = replicate(n, samp(p1 = p1))
+hist(X,breaks = 50, xlim = c(-4, 6), prob = T, main = "Histogram of  Mix-Gaussian (p = 0.9)")
+curve(pdf(x, p1 = p1), -4, 6, col = "red", add = T)
+```
+
+From the plot, we could see the sample histogram and the density function overlap very well. When p is around 0.5, the empirical distribution of the mixture appears to be bimodal, when p is close to 0 or 1, we could not see the bimodal distribution clearly.
+
+
+
+## Question 3-20
+
+Formulate $E[X(t)]=\lambda tE[Y_1]$ and $Var(X(t)) = \lambda t E[Y_1^2]$.
+
+
+\begin{align}
+\begin{aligned}
+E[X(t)] &= E[E[X(t)|N(t)]]\\
+&=E[[\sum_{i=1}^{N(t)}Y_i|N(t)]]\\
+&=E[N(T)E[Y_1]]\\
+&= E[N(t)]E[Y_1] \\
+&= \lambda tE[Y_1]
+\end{aligned}
+\end{align}
+
+
+\begin{align}
+\begin{aligned}
+Var(X(t)) &= E[Var(X(t)|N(t))] + Var(E[X(t)|N(t)])\\
+&=E[N(t)Var(Y_1)]+Var(N(t)E(Y_1))\\
+&=E[N(t)]Var(Y_1)+(E[Y_1])^2Var(N(t))\\
+&=\lambda t Var(Y_1) + (E[Y_1])^2 \lambda t \\
+&= \lambda t((E[Y_1])^2 + Var(Y_1))\\
+&=\lambda t E[Y_1^2]
+\end{aligned}
+\end{align}
+
+If $Y_i\sim \Gamma(\alpha, \beta)$, then $E[Y_i] = \frac{\alpha}{\beta}, Var(Y_i)=\frac{alpha}{\beta^2}$, $E[Y_i^2]=(E[Y_i])^2 + Var(Y_i)=\frac{\alpha + \alpha^2}{\beta^2}$
+
+
+```{r,eval=FALSE}
+poi_gamm_simu <- function(lambda, alpha, beta, t){
+  f = function(lambda = lambda, t = t, alpha = alpha, beta = beta){
+    N = rpois(1, lambda*t)
+    X = sum(rgamma(N, alpha, beta))
+  }  
+  Xt = replicate(10, f(lambda = lambda, t = t, alpha = alpha, beta = beta))
+  result = matrix(0,2,2)
+  result[1,1] = mean(Xt)
+  result[2,1] = var(Xt)
+  result[1,2] = lambda*t*alpha/beta
+  result[2,2] = lambda*t*(alpha+alpha^2)/beta^2
+  rownames(result) = c("E[X(t)]", "Var(X(t))")
+  colnames(result) = c("Estimate", "Theoretical")
+  result
+  
+}
+poi_gamm_simu(lambda = 1, alpha = 2, beta = 4, t = 10)
+poi_gamm_simu(lambda = 1, alpha = 4, beta = 2, t = 10)
+poi_gamm_simu(lambda = 2, alpha = 3, beta = 5, t = 10)
+poi_gamm_simu(lambda = 2, alpha = 5, beta = 3, t = 10)
+```
+
+From the table, we could see the estimation and theoretical values are very close.
+
+9-30
+
+## Question 5.4
+
+Write a function to compute a Monte Carlo estimate of the Beta(3,3) cdf,and use the function to estimate F(x) for x=0.1,0.2,...,0.9.Compare the estimate with the values returned by the pbeta function in R.
+
+## Answer 5.4
+
+$$F(x)=\int_0^x30*y^2(1-y)^2dy\\
+=\int_0^x30*y^2(1-y)^2*x/xdy\\
+=30E[y^2(1-y)^2*x],0<x<1\\y\sim U(0,x)$$
+```{r,eval=FALSE}
+set.seed(21076)
+m = 10
+x = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9)
+y = runif(m,min = 0,max = x)
+t = mean(y^2*(1-y)^2)*30*x
+z = pbeta(x,3,3)
+print(c(t))
+print(c(z))
+```
+We find that the numerical difference between the two methods is significant.
+
+## Question 5.9
+
+The Raylaigh density is 
+$$f(x) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}, \quad x\ge 0, \sigma>0.$$
+Implement a functin to generate samples from a Rayleigh(\sigma) distribution,using antithetic variables.What is the percent reduction in variance of (X+\acute{X})/2 compared with (X_1+X_2)/2 for independent X_1,X_2?
+
+## Answer 5.9
+
+For independent X_1, X_2,var((X_1+X_2)/2)=var(X_1)= var(X_2)=var(x) .
+$$F(x) = \int_0^x\frac{y}{\sigma^2}e^{-y^2/(2\sigma^2)}dy\\
+= \int_0^x\frac{y}{\sigma^2}e^{-y^2/(2\sigma^2)}*x/xdy\\
+=E[\frac{y}{\sigma^2}e^{-y^2/(2\sigma^2)}*x],\\
+\quad x\ge 0, \sigma>0.$$
+
+```{r,eval=FALSE}
+set.seed(1)
+sigma = 1
+u = runif(1,0,1) 
+x = sqrt(-2*log(1-u))*sigma  
+m = 10
+y = runif(m, 0, x)
+VAR_x = var(c(x*y/sigma*exp(-y^2/2/(sigma)^2)))/m
+t = runif(m/2, 0, x)
+VAR_t = var(c(x*t/sigma*exp(-t^2/2/(sigma)^2)+x*(x-t)/sigma*exp(-(x-t)^2/2/(sigma)^2)))/m
+print(VAR_x)
+print(VAR_t)
+```
+so VAR_x > VAR_t
+
+## Question 5.13
+
+Find two important functions f1 and f2 that are supporte on (1,+\infty) and are “close” to 
+$$G(x)= \int_1^{+\infty}\frac{x^2}{\sqrt{2\pi}}e^{-x^2/2}dx, x>1$$
+Which of your two importance functions should produce the smaller variance in estimating 
+$$\int_1^{+\infty}\frac{x^2}{\sqrt{2\pi}}e^{-x^2/2}dx$$
+by importance sampling? Explain.
+
+## Answer 5.13
+
+$$
+t(x)=2 ,  x\sim U(0,1/2)\\
+g(x)= \int_1^{+\infty}\frac{x^2}{\sqrt{2\pi}}e^{-x^2/2}dx, x>1\\
+=\int_{1/2}^{+\infty}\frac{\sqrt{y}}{\sqrt{2\pi}}e^{-y}dy, y>1/2,y=\frac{x^2}2\\
+=\int_{0}^{+\infty}\frac{\sqrt{y}}{\sqrt{2\pi}}e^{-y}dy-\int_{0}^{1/2}\frac{\sqrt{y}}{\sqrt{2\pi}}e^{-y}dy\\
+=\frac1{2\sqrt{2}}-\int_{0}^{1/2}\frac{\sqrt{y}}{\sqrt{2\pi}}e^{-y}dy\\
+=\frac1{2\sqrt{2}}-\frac1{2}E[\frac{\sqrt{y}}{\sqrt{2\pi}}e^{-y}]\\
+f(x)=3x^2, 0<x<1\\
+g(x)=\frac1{2\sqrt{2}}-\int_0^{1}\frac{x^2}{\sqrt{2\pi}}e^{-x^2/2}dx\\
+=\frac1{2\sqrt{2}}-E[\frac1{3\sqrt{2\pi}}e^{-x^2/2}]\\
+$$
+
+```{r,eval=FALSE}
+set.seed(2)
+n = 10
+y = runif(n,0,1/2)
+var_t = var(1/2*sqrt(y)/sqrt(2*pi)*exp(-y))
+u = runif(n,0,1)
+x = u^{1/3}
+var_f = var(1/3/sqrt(2*pi)*exp(-x^2/2))
+print(c(var_t))
+print(c(var_f))
+```
+so VAR_f < VAR_t
+
+## Question 5.14
+
+Obtain a Monte Carlo estimate of 
+$$\int_1^{+\infty}\frac{x^2}{\sqrt{2\pi}}e^{-x^2/2}dx$$
+by importance sampling.
+
+## Answer 5.14
+
+The answer of 5.14 is same as 5.13.
+
+10-14
+
+## Question 6.5
+
+Suppose a 95% symmetric t-interval is applied to estimate a mean,but the sample data are non-normal. Then the probability that the confidence interval covers the mean is not necessarily equal to 0.95. Use a Monte Carlo experiment to estimate the coverage probability of the t-interval for random samples of $${\chi}^2(2)$$ data with sample size n=20.Compare your t-interval results with the simulation results in Example 6.4 (The t-interval should be more robust to departures from normality than the interval of variance.)
+
+## Answer 6.5
+
+因为$$\frac{\bar{x}-\mu}{\sigma/\sqrt{n}}\sim t(n-1)$$
+所以the 95% symmetric t-interval of a mean is $$[\bar{x}-\frac{\sigma}{\sqrt{n}}t_{0.975}(n-1),\bar{x}+\frac{\sigma}{\sqrt{n}}t_{0.975}(n-1)]$$
+先求出置信区间的上限$${\theta_2=\bar{x}+\frac{\sigma}{\sqrt{n}}t_{0.975}(n-1)}$$和下限$${\theta_1=\bar{x}-\frac{\sigma}{\sqrt{n}}t_{0.975}(n-1)}$$,
+取100000次实验的随机生成的数值，求置信区间，计算均值2落在这100000个置信区间内的频数和频率
+
+```{r,eval=FALSE}
+set.seed(7)
+n = 20
+m = 10
+alpha = 0.05
+x = rchisq(n,2)
+theta_1=replicate(m,expr = {
+  x = rchisq(n,2)
+  mean(x)-sd(x)/sqrt(n)*qt((1-alpha/2),n-1)
+  })
+theta_2=replicate(m,expr = {
+  x = rchisq(n,2)
+  mean(x)+sd(x)/sqrt(n)*qt((1-alpha/2),n-1)
+  })
+
+d = sum((theta_1 < 2) & (2 < theta_2))
+print(c(d/m))
+```
+
+因为样本是非正态的 t分布要求样本是正态的  所以导致 coverage probability = 0.92004 < confidence interval =0.95,
+例子6.4就不存在这样的错误，所以结果的CP会接近CI，t区间对偏离正态性的情况比方差区间更文件。
+
+## Question 6.A
+
+Use Monte Carlo simulation to investigate whether the empirical Type I error rate of the t-test is approximately equal the nominal sigificance level $${\alpha}$$, when the sampled population is non-normal. The t-test is robust to mild departures from normality. Discuss the simulation results for the cases where the sampled population is (i) $${\chi}^2(1)$$ (ii) Uniform(0,2) (iii)Exponential(rate=1). In each case, test $${H_0:\mu=\mu_0} vs { H_1:\mu\not=\mu_0}$$,where $${\mu_0}$$ is the mean of $${\chi}^2(1)$$ , Uniform(0,2),and Exponential(1),respectively.
+
+
+## Answer 6.A
+
+令$${x_1\sim{\chi}^2(1)}\\{x_2\sim U(0,2)}\\{x_3\sim e(1)}$$
+所以 $${E(X_1)=E(X_2)=E(X_3)=\mu_0=1}$$
+
+
+```{r,eval=FALSE}
+set.seed(7)
+n = 20
+m = 100
+alpha = 0.05
+mu_0 = 1
+p_1 = p_2 = p_3 =numeric(m)
+x_1 = rchisq(n,1)
+x_2 = runif(n,0,2)
+x_3 = rexp(n,1)
+for(i in 1:m){
+  x_1 = rchisq(n,1)
+  ttest_1 = t.test(x_1,alternative = "greater",mu = mu_0)
+  p_1[i] = ttest_1$p.value
+}
+for(i in 1:m){
+  x_2 = runif(n,0,2)
+  ttest_2 = t.test(x_2,alternative = "greater",mu = mu_0)
+  p_2[i] = ttest_2$p.value
+}
+for(i in 1:m){
+  x_3 = rexp(n,1)
+  ttest_3 = t.test(x_3,alternative = "greater",mu = mu_0)
+  p_3[i] = ttest_3$p.value
+}
+p_1.hat = mean(p_1 < alpha)
+p_2.hat = mean(p_2 < alpha)
+p_3.hat = mean(p_3 < alpha)
+print(c(p_1.hat,p_2.hat,p_3.hat))
+```
+
+观察到的第一类错误的概率分别是 0.01280 0.05075 0.01925，只有均匀分布接近与显著性水平0.05，The t-test is robust to mild departures from normality.
+
+
+## Question 
+
+If we obtain the powers for two methods under a particular simulation setting with 10000 experiments : say 0.651 for one method and 0.676 for another method .
+We want to know if the powers are different at 0.05 level.
+what is the corresponding hypothes test problem?
+What test should we use? Z-test, two-sample t-tset,pairad-test or Mcnear test?
+Why?
+Please provide the least necessary information for hypothesis testing.
+
+## Answer
+
+(1) Denote the powers of two methods as $pwr_{1}$ and $pwr_{2}$, then the corresponding hypothesis test problem is:
+$$H_{0}: pwr_{1}=pwr_{2} \leftrightarrow H_{1}: pwr_{1}\not=pwr_{2}.$$
+
+(2) As the p-value of two methods for the same sample is not independent, we can not apply the two-sample t-test. For the z-test and paired-t test, when the sample size is large, we have the mean value of significance test follows a normal distribution, thus these two methods can be used in the approximate level. McNemar test is good at dealing with this case as it doesn't need to know the distribution.
+
+(3) For these test, what we already know is the number of experiments and the value of power(the probability that we reject the null hypothesis correctly). To conduct this test, we also need to know the significance of both methods for each sample. 
+
+10-21
+
+## 6.C
+
+Repeat Examples 6.8 and 6.10 for Mardia’s multivariate skewness test. Mardia  proposed tests of multivariate normality based on multivariate generalizations of skewness and kurtosis. If X and Y are iid, the multivariate
+population skewness $\beta_{1,d}$ is defined by Mardia as
+$$\beta_{1,d}=E[(X-\mu)^T \Sigma^{-1}(Y-\mu)]^3$$
+Under normality,$\beta_{1,d}=0$ . The multivariate skewness statistic is
+$$b_{1,d}=\frac{1}{n^2} \sum_{i,j=1}^n {((X_i-\bar{X})^T \hat{\Sigma}^{-1} (X_j-\bar{X}))^3}$$
+where $\hat{\Sigma}$is the maximum likelihood estimator of covariance. Large values of $b_{1,d}$ are significant. The asymptotic distribution of $\frac{nb_{1,d}}{6}$ is chisquared with $\frac{d(d + 1)(d + 2)}{6}$ degrees of freedom.
+
+## Answer
+
+Repeat Example 6.8  and make  $N(\mu,\Sigma)$, where:
+$$\mu=(0,0)^{T} , \Sigma=\left( \begin{array}{cc}
+1 & 0 \\
+0 & 1  \end{array} \right).$$
+
+```{r,eval=FALSE}
+set.seed(12)
+library(MASS)
+mean = c(0,0)
+sigma = matrix(c(1,0,0,1),nrow = 2,ncol = 2)
+
+
+n = c(1,2,3,5,10,50,60)
+d = c(2,2,2,2,2,2,2)
+cv = qchisq(0.975,0,d*(d+1)*(d+2)/6)*6/n
+print(cv)
+
+sk = function(x){
+  xbar = mean(x)
+  m3 = mean((x-xbar)^3)
+  m2 = mean((x-xbar)^2)
+  return(m3/m2^1.5)
+  }
+
+p.reject = numeric(length(n))
+m = 100
+for (i in 1:length(n)){
+  sktests = numeric(m)
+  for (j in 1:m){
+    x = mvrnorm(n[i],mean,sigma)
+    sktests[j] = as.integer(abs(sk(x)) >= cv[i] )
+  }
+  p.reject[i] = mean(sktests)
+  }
+
+print(p.reject)
+
+```
+
+The result of simulation suggest that the values of p is equal to 0.05 with 600 replicates.
+
+
+
+
+Repeat Example 6.10
+
+
+```{r,eval=FALSE}
+set.seed(13)
+library(MASS)
+mean1 = c(0,0)
+sigma1 = matrix(c(1,0,0,1),nrow = 2,ncol = 2)
+mean2 = c(0,0)
+sigma2 = matrix(c(100,0,0,100),nrow = 2,ncol = 2)
+
+alpha = 0.1
+n = 3
+m = 25
+epsilon = c(seq(0,0.15,0.01),seq(0.15,1,0.05))
+N = length(epsilon)
+pwr = numeric(N)
+d = 2
+cv = qchisq(1-alpha/2,d*(d+1)*(d+2)/6)*6/n
+
+sk = function(x){
+  xbar = mean(x)
+  m3 = mean((x-xbar)^3)
+  m2 = mean((x-xbar)^2)
+  return(m3/m2^1.5)
+}
+
+for(j in 1:N){
+  e = epsilon[j]
+  sktests = numeric(m)
+  for(i in 1:m){
+    index = sample(c(1,10),replace = TRUE,size = n,prob = c(1-e,e))
+    x = matrix(0,nrow = n,ncol = 2)
+    for (t in 1:n){
+      if(index[t] == 1) x[t,] = mvrnorm(1,mean1,sigma1)
+      else x[t,] = mvrnorm(1,mean2,sigma2)
+    }
+    sktests[i] = as.integer(abs(sk(x)) >= cv)
+  }
+  pwr[j] = mean(sktests)
+}
+
+plot(epsilon,pwr,type = "b",xlab = bquote(epsilon),ylim = c(0,1))
+abline(h = 0.1,lty = 3)
+se = sqrt(pwr*(1-pwr)/m)
+lines(epsilon,pwr+se,lty = 3)
+lines(epsilon,pwr-se,lty = 3)
+```
+
+The power curve crosses the horizontal line corresponding to 0.1 at $$\epsilon=0$$ and $$0.3<\epsilon<1$$.
+
+10-28
+
+## 7.7
+## Answer
+
+
+```{r,eval=FALSE}
+library(bootstrap)
+set.seed(321)
+
+B = 100
+n = nrow(scor)
+theta_hat_star = numeric(B)
+
+lambda_hat = eigen(cov(scor))$values
+theta_hat = lambda_hat[1] / sum(lambda_hat)
+
+for (b in 1:B){
+  scor_star = sample(scor,replace = TRUE)
+  lambda_hat_star = eigen(cov(scor_star))$values
+  theta_hat_star[b] = lambda_hat_star[1] / sum(lambda_hat_star)
+}
+
+se_theta_hat_star = sd(theta_hat_star)
+bias_theta_hat_star =  mean(theta_hat_star) - theta_hat
+
+print(bias_theta_hat_star)
+print(se_theta_hat_star)
+hist(theta_hat_star,prob = TRUE)
+
+
+
+
+```
+
+
+
+
+## 7.8
+## Answer
+```{r,eval=FALSE}
+
+library(bootstrap)
+set.seed(321)
+
+n = nrow(scor)
+lambda_hat = eigen(cov(scor))$values
+theta_hat = lambda_hat[1] / sum(lambda_hat)
+theta_hat_star = numeric(n)
+
+for (i in 1:n) {
+scor_star = scor [-i,]
+lambda_hat_star = eigen(cov(scor_star))$values
+theta_hat_star[i] = lambda_hat_star[1] / sum(lambda_hat_star)
+}
+
+bias_jack = (n-1)*(mean(theta_hat_star)-theta_hat)
+se_jack = (n-1)*sqrt(var(theta_hat_star)/n)
+
+print(bias_jack)
+print(se_jack)
+```
+
+## 7.9
+## Answer
+
+
+```{r,eval=FALSE}
+library(boot)
+set.seed(321)
+data(scor,package = "bootstrap")
+theta.boot = function(dat,i){
+  scor_star = sample(dat,replace = TRUE)
+  lambda_hat_star = eigen(cov(scor_star))$values
+  theta_hat_star[i] = lambda_hat_star[1] / sum(lambda_hat_star)
+}
+
+
+boot.obj = boot(scor,statistic = theta.boot,R = 1000)
+
+boot.ci(boot.obj,type = c("perc","bca"))
+
+```
+
+## 7.B
+## Answer
+
+```{r,eval=FALSE}
+library(boot)
+set.seed(321)
+n = 100
+x = rnorm(n,0,2)
+y = rchisq(n,5)
+
+skewness_stat = function(x,i){
+  x = rnorm(n,0,2)
+  x_bar = mean(x)
+}
+
+chisq_stat = function(y,i){
+  y = rchisq(n,5)
+  y_bar = mean(y)
+}
+
+boot.obj_1 = boot(x,statistic = skewness_stat,R = 100)
+boot.obj_2 = boot(x,statistic = chisq_stat,R = 100)
+
+boot.ci(boot.obj_1,type = c("basic","norm","perc"))
+boot.ci(boot.obj_2,type = c("basic","norm","perc"))
+```
+
+11-4
+
+## Question 8.2
+
+
+## Answer
+
+取x,y为两个5维向量，他们分别是由均匀分布和正态分布生成的独立样本
+
+```{r,eval=FALSE}
+library(boot)
+set.seed(123)
+n = 10
+p = 5
+q = 5
+
+x=c()#生成一个空的向量用于储存生成的随机数
+for (i in 1:n){
+ xi = runif(p,0,1)#生成x的第i个p维样品
+ x = c(x,xi)
+}
+x = matrix(x,nrow = n,byrow = TRUE)#将向量x转化为矩阵x
+
+y=c()#生成一个空的向量用于储存生成的随机数
+for (i in 1:n){
+ yi = rnorm(q,0,1)#生成y的第i个p维样品
+ y = c(y,yi)
+}
+y = matrix(y,nrow = n,byrow = TRUE)#将向量y转化为矩阵y
+
+cor.test(x,y,method = "spearman")
+```
+
+p值维为0.1392，无论$${\alpha=0.05}$$或是$${\alpha=0.10}$$,都接受原假设，认为下x,y独立
+
+
+## Question 
+
+
+## Answer
+(1)
+```{r,eval=FALSE}
+library(RANN)
+library(boot)
+library(Ball)
+library(energy)
+library(MASS)
+
+Tn = function(z, ix, sizes,k) {
+  n1 = sizes[1]; n2 = sizes[2]; n = n1 + n2
+  if(is.vector(z)) z = data.frame(z,0);
+  z = z[ix, ];
+  NN = nn2(data=z, k=k+1)
+  block1 = NN$nn.idx[1:n1,-1]
+  block2 = NN$nn.idx[(n1+1):n,-1]
+  i1 = sum(block1 < n1 + .5); i2 = sum(block2 > n1+.5)
+  (i1 + i2) / (k * n)
+}
+
+eqdist.nn = function(z,sizes,k){
+  boot.obj = boot(data=z,statistic=Tn,R=R, sim = "permutation", sizes = sizes,k=k)
+  ts = c(boot.obj$t0,boot.obj$t)
+  p.value = mean(ts>=ts[1])
+  list(statistic=ts[1],p.value=p.value)
+}
+```
+
+令 $N(\mu_{1},\Sigma_{1})$ ， $N(\mu_{2},\Sigma_{2})$ 其中，
+\[\mu_{1}=\mu_{2}=(0,0)^{T}, \Sigma_{1}=\left( \begin{array}{ccc}
+1 & 0  \\
+ 0 & 1 \end{array} \right)
+\Sigma_{2}=\left( \begin{array}{ccc}
+2 & 0 \\
+0 & 2 \end{array} \right).\]
+```{r,eval=FALSE}
+mu1 = c(0,0)
+sigma1 = matrix(c(1,0,0,1),nrow=2,ncol=2)
+mu2 = c(0,0)
+sigma2 = matrix(c(2,0,0,2),nrow=2,ncol=2)
+n1=n2=20
+n = n1+n2 
+N = c(n1,n2)
+k=3
+R=999
+m=100
+set.seed(123)
+p.values = matrix(NA,m,3)
+for(i in 1:m){
+  mydata1 = mvrnorm(n1,mu1,sigma1)
+  mydata2 = mvrnorm(n2,mu2,sigma2)
+  mydata = rbind(mydata1,mydata2)
+  p.values[i,1] = eqdist.nn(mydata,N,k)$p.value
+  p.values[i,2] = eqdist.etest(mydata,sizes=N,R=R)$p.value
+  p.values[i,3] = bd.test(x=mydata1,y=mydata2,num.permutations=R,seed=i*2846)$p.value
+}
+alpha = 0.05;
+pow = colMeans(p.values<alpha)
+pow
+```
+表现：ball methods > energy methods > NN methods
+
+(2) 令 $N(\mu_{1},\Sigma_{1})$  $N(\mu_{2},\Sigma_{2})$ 其中，
+\[\mu_{1}=(0,0)^{T}, \mu_{2}=(1,1)^{T}, \Sigma_{1}=\left( \begin{array}{ccc}
+1 & 0  \\
+0 &  1  \end{array} \right)
+\Sigma_{2}=\left( \begin{array}{ccc}
+2 & 0 \\
+0 &  2 \end{array} \right).\]
+```{r,eval=FALSE}
+mu1 = c(0,0)
+sigma1 = matrix(c(1,0,0,1),nrow=2,ncol=2)
+mu2 = c(1,1)
+sigma2 = matrix(c(2,0,0,2),nrow=2,ncol=2)
+n1=n2=20
+n = n1+n2 
+N = c(n1,n2)
+k=3
+R=999
+m=100
+set.seed(123)
+p.values = matrix(NA,m,3)
+for(i in 1:m){
+  mydata1 = mvrnorm(n1,mu1,sigma1)
+  mydata2 = mvrnorm(n2,mu2,sigma2)
+  mydata = rbind(mydata1,mydata2)
+  p.values[i,1] = eqdist.nn(mydata,N,k)$p.value
+  p.values[i,2] = eqdist.etest(mydata,sizes=N,R=R)$p.value
+  p.values[i,3] = bd.test(x=mydata1,y=mydata2,num.permutations=R,seed=i*2846)$p.value
+}
+alpha = 0.05;
+pow = colMeans(p.values<alpha)
+pow
+```
+
+表现：energy methods > ball methods >  NN methods
+
+(3) 非正态分布
+```{r,eval=FALSE}
+n1=n2=20
+n = n1+n2 
+N = c(n1,n2)
+k=3
+R=999
+m=100
+set.seed(123)
+p.values = matrix(NA,m,3)
+for(i in 1:m){
+  mydata1 = as.matrix(rt(n1,1,2),ncol=1)
+  mydata2 = as.matrix(rt(n2,2,5),ncol=1)
+  mydata = rbind(mydata1,mydata2)
+  p.values[i,1] = eqdist.nn(mydata,N,k)$p.value
+  p.values[i,2] = eqdist.etest(mydata,sizes=N,R=R)$p.value
+  p.values[i,3] = bd.test(x=mydata1,y=mydata2,num.permutations=R,seed=i*2846)$p.value
+}
+alpha = 0.05;
+pow = colMeans(p.values<alpha)
+pow
+```
+表现: ball methods >  NN methods > energy methods 
+
+两个正态分布的混合: $\frac{1}{2}N(0,1)+\frac{1}{2}N(0,2)$ 和 $\frac{1}{2}N(1,1)+\frac{1}{2}N(1,2)$, 
+```{r,eval=FALSE}
+n1=n2=20
+n = n1+n2 
+N = c(n1,n2)
+k=3
+R=999
+m=100
+set.seed(123)
+p.values = matrix(NA,m,3)
+rbimodel=function(n,mu1,mu2,sd1,sd2){
+  index=sample(1:2,n,replace=TRUE)
+  x=numeric(n)
+  index1=which(index==1)
+  x[index1]=rnorm(length(index1), mu1, sd1)
+  index2=which(index==2)
+  x[index2]=rnorm(length(index2), mu2, sd2)
+  return(x)
+}
+for(i in 1:m){
+  mydata1 = as.matrix(rbimodel(n1,0,0,1,2),ncol=1)
+  mydata2 = as.matrix(rbimodel(n2,1,1,1,2),ncol=1)
+  mydata = rbind(mydata1,mydata2)
+  p.values[i,1] = eqdist.nn(mydata,N,k)$p.value
+  p.values[i,2] = eqdist.etest(mydata,sizes=N,R=R)$p.value
+  p.values[i,3] = bd.test(x=mydata1,y=mydata2,num.permutations=R,seed=i*2846)$p.value
+}
+alpha = 0.05;
+pow = colMeans(p.values<alpha)
+pow
+```
+
+表现：energy methods > ball methods >  NN methods
+
+
+(4) 令 $N(\mu_{1},\Sigma_{1})$  $N(\mu_{2},\Sigma_{2})$ 其中，
+\[\mu_{1}=(0,0)^{T}, \mu_{2}=(1,1)^{T}, \Sigma_{1}=\left( \begin{array}{ccc}
+1 & 0  \\
+0 &  1  \end{array} \right)
+\Sigma_{2}=\left( \begin{array}{ccc}
+2 & 0 \\
+0 &  2 \end{array} \right).\]
+ $n_{1}=10, n_{2}=100$.
+```{r,eval=FALSE}
+mu1 = c(0,0)
+sigma1 = matrix(c(1,0,0,1),nrow=2,ncol=2)
+mu2 = c(1,1)
+sigma2 = matrix(c(2,0,0,2),nrow=2,ncol=2)
+n1=10
+n2=100
+n = n1+n2 
+N = c(n1,n2)
+k=3
+R=999
+m=100
+set.seed(123)
+p.values = matrix(NA,m,3)
+for(i in 1:m){
+  mydata1 = mvrnorm(n1,mu1,sigma1)
+  mydata2 = mvrnorm(n2,mu2,sigma2)
+  mydata = rbind(mydata1,mydata2)
+  p.values[i,1] = eqdist.nn(mydata,N,k)$p.value
+  p.values[i,2] = eqdist.etest(mydata,sizes=N,R=R)$p.value
+  p.values[i,3] = bd.test(x=mydata1,y=mydata2,num.permutations=R,seed=i*2846)$p.value
+}
+alpha = 0.05;
+pow = colMeans(p.values<alpha)
+pow
+```
+表现：energy methods = ball methods >  NN methods
+
+11-11
+
+## Question9.3
+$$f(x)=\frac{1}{\pi(1+x^2)} -\infty < x < +\infty $$
+## Answer
+
+建议分布选择正态分布
+```{r,eval=FALSE}
+set.seed(123)
+f = function(x,eta,theta){
+  stopifnot(theta > 0)
+  return(1/theta/pi/(1+(x-eta)^2/theta^2))
+}
+m = 10000
+x = numeric(m)
+
+
+eta = 0
+theta = 1
+
+x[1] = rnorm(1,0,1)
+k = 0
+u = runif(m)
+for (i in 2:m){
+  xt = x[i-1]
+  y = rnorm(1,xt,1)
+  num = f(y,eta,theta)*dnorm(xt, y,1)
+  den = f(xt,eta,theta)*dnorm(y,xt,1)
+  if (u[i] <= num/den) x[i] = y else{
+    x[i] = xt
+    k = k+1
+  }
+}
+
+print(k)
+
+b = 1001
+y = x[b:m]
+a = ppoints(100)
+QR =
+Q = quantile(x,a)
+qqplot(QR,Q,main = "",xlab = "Cauchy Quantiles",ylab = "Sample Quantules")
+hist(y,breaks = "scott",main = "",xlab = "",freq = FALSE)
+lines(QR,f(QR,0,1))
+
+```
+样本分位数与理论分位数近似拟合
+
+目标分布标准柯西分布，建议分布正态分布
+```{r,eval=FALSE}
+
+set.seed(123)
+Gelman.Rubin = function(psi) {
+psi = as.matrix(psi)
+n = ncol(psi)
+k = nrow(psi)
+psi.means = rowMeans(psi) 
+B = n * var(psi.means) 
+psi.w = apply(psi, 1, "var")
+W = mean(psi.w) 
+v.hat = W*(n-1)/n + (B/n) 
+r.hat = v.hat / W 
+return(r.hat)
+}
+normal.chain = function(sigma, N, X1) {
+x = rep(0, N)
+x[1] = X1
+u = runif(N)
+for (i in 2:N) {
+xt = x[i-1]
+y = rnorm(1, xt, sigma) 
+r1 = dcauchy(y, 0, 1) * dnorm(xt, y, sigma)
+r2 = dcauchy(xt, 0, 1) * dnorm(y, xt, sigma)
+r = r1 / r2
+if (u[i] <= r) x[i] = y else
+x[i] = xt
+}
+return(x)
+}
+
+k = 4 
+n = 150
+b = 10
+x0 = c(-10, -5, 5, 10)
+
+sigma = 1.5 
+X = matrix(0, nrow=k, ncol=n)
+for (i in 1:k)
+X[i, ] = normal.chain(sigma, n, x0[i])
+psi = t(apply(X, 1, cumsum))
+for (i in 1:nrow(psi))
+psi[i,] = psi[i,] / (1:ncol(psi))
+print(Gelman.Rubin(psi))
+par(mfrow=c(1,1)) 
+rhat = rep(0, n)
+for (j in (b+1):n)
+rhat[j] = Gelman.Rubin(psi[,1:j])
+plot(rhat[(b+1):n], type="l", xlab="sigma = 1.5", ylab="R")
+abline(h=1.1, lty=2)
+
+sigma = 0.5 
+X = matrix(0, nrow=k, ncol=n)
+for (i in 1:k)
+X[i, ] = normal.chain(sigma, n, x0[i])
+psi = t(apply(X, 1, cumsum))
+for (i in 1:nrow(psi))
+psi[i,] = psi[i,] / (1:ncol(psi))
+print(Gelman.Rubin(psi))
+par(mfrow=c(1,1)) 
+rhat = rep(0, n)
+for (j in (b+1):n)
+rhat[j] = Gelman.Rubin(psi[,1:j])
+plot(rhat[(b+1):n], type="l", xlab="sigma = 0.5", ylab="R")
+abline(h=1.1, lty=2)
+
+sigma = 1
+X = matrix(0, nrow=k, ncol=n)
+for (i in 1:k)
+X[i, ] = normal.chain(sigma, n, x0[i])
+psi = t(apply(X, 1, cumsum))
+for (i in 1:nrow(psi))
+psi[i,] = psi[i,] / (1:ncol(psi))
+print(Gelman.Rubin(psi))
+par(mfrow=c(1,1)) 
+rhat = rep(0, n)
+for (j in (b+1):n)
+rhat[j] = Gelman.Rubin(psi[,1:j])
+plot(rhat[(b+1):n], type="l", xlab="sigma = 1", ylab="R")
+abline(h=1.1, lty=2)
+
+```
+sigma = 0.5时 n=12000左右 R<1.2
+sigma = 1.5时 n=7000左右 R<1.2
+
+
+## Question9.8
+
+
+```{r,eval=FALSE}
+set.seed(123)
+a = b = 1
+n = 5
+N = 50
+burn = 10
+X = matrix(0,N,2)
+
+X[1,] = c(2,0.2)
+for (i in 2:N){
+  y = X[i-1,2]
+  X[i,1] = rbinom(1,n,y)#边缘分布
+  x = X[i,1]
+  X[i,2] = rbeta(1,x+a,n-x+b)#边缘分布
+}
+
+b_bar = burn+1
+X_bar = X[b_bar:N,]
+
+plot(X_bar,xlab = "x",ylab = "y")
+```
+
+(2)
+```{r,eval=FALSE}
+set.seed(123)
+Gelman.Rubin = function(psi) {
+psi = as.matrix(psi)
+n = ncol(psi)
+k = nrow(psi)
+psi.means = rowMeans(psi) 
+B = n * var(psi.means) 
+psi.w = apply(psi, 1, "var")
+W = mean(psi.w) 
+v.hat = W*(n-1)/n + (B/n) 
+r.hat = v.hat / W 
+return(r.hat)
+}
+normal.chain = function(sigma, N, X1) {
+x = rep(0, N)
+x[1] = X1
+u = runif(N)
+for (i in 2:N) {
+xt = x[i-1]
+y = rnorm(1, xt, sigma) 
+r1 = dnorm(y, 0, 1) * dnorm(xt, y, sigma)
+r2 = dnorm(xt, 0, 1) * dnorm(y, xt, sigma)
+r = r1 / r2
+if (u[i] <= r) x[i] = y else
+x[i] = xt
+}
+return(x)
+}
+
+k = 4 
+n = 150
+b = 10
+x0 = c(-10, -5, 5, 10)
+
+sigma = 0.2 
+X = matrix(0, nrow=k, ncol=n)
+for (i in 1:k)
+X[i, ] = normal.chain(sigma, n, x0[i])
+psi = t(apply(X, 1, cumsum))
+for (i in 1:nrow(psi))
+psi[i,] = psi[i,] / (1:ncol(psi))
+print(Gelman.Rubin(psi))
+par(mfrow=c(1,1)) 
+rhat = rep(0, n)
+for (j in (b+1):n)
+rhat[j] = Gelman.Rubin(psi[,1:j])
+plot(rhat[(b+1):n], type="l", xlab="sigma = 1.5", ylab="R")
+abline(h=1.1, lty=2)
+
+sigma = 2 
+X = matrix(0, nrow=k, ncol=n)
+for (i in 1:k)
+X[i, ] = normal.chain(sigma, n, x0[i])
+psi = t(apply(X, 1, cumsum))
+for (i in 1:nrow(psi))
+psi[i,] = psi[i,] / (1:ncol(psi))
+print(Gelman.Rubin(psi))
+par(mfrow=c(1,1)) 
+rhat = rep(0, n)
+for (j in (b+1):n)
+rhat[j] = Gelman.Rubin(psi[,1:j])
+plot(rhat[(b+1):n], type="l", xlab="sigma = 0.5", ylab="R")
+abline(h=1.1, lty=2)
+
+
+```
+
+11-18
+
+## Question 11.3
+
+##answer
+
+
+```{r,eval=FALSE}
+set.seed(123)
+#(a)
+func_k = function(a,k){
+  d = length(a)
+  b = sum((a)^(2*k+2))
+  e = prod(1:k)
+  c = b^(1/(2*k+2))#求欧式范数
+  g = exp(lgamma((d+1)/2)+lgamma(k+3/2)-lgamma(k+d/2+1))
+  h = (-1/2)^k/e*b/(2*k+1)/(2*k+2)*g
+  return(h)
+}
+
+#(b)
+
+s = function(n){
+  l = 0
+  for (k in 1:n){
+    l = l + func_k(a,k)
+  }
+  return(l)#取前n项和进行进似
+}
+
+#(c)
+
+n = 100
+a = c(1,2)
+print(s(n))
+```
+
+
+
+
+
+## Question 11.5
+
+##answer
+```{r,eval=FALSE}
+set.seed(123)
+l = function(u,k0){
+  (1+(u^2)/(k0-1))^(-k0/2)
+}
+g = function(a,k){
+  up = sqrt(a^2 * (k-1)/(k-a^2))
+  w = integrate(l,lower=0,upper=up,k0 = k)$value
+  (2*gamma(k/2)/(sqrt(pi*(k-1))*gamma((k-1)/2)))*w
+}
+f = function(a,k){
+ g(a,k+1)-g(a,k)
+}
+f1 = function(a,k){
+  C = numeric(length(a))
+  for(i in 1:length(a)){
+  C[i] = f(a[i],k)
+  }
+  return(C)
+}
+k = c(16:25,50,100)
+sol = function(k1){
+ m =uniroot(f,k=k1,lower = 1,upper = 2)$root
+ m
+}
+B = numeric(length(k))
+for (i in 1:length(k)){
+B[i] = sol(k[i])
+}
+
+S = function(a,k){
+ ck = sqrt(a^2*k/(k+1-a^2))
+ pt(ck,df=k,lower.tail=FALSE)
+}
+
+solve = function(k){
+  output = uniroot(function(a){S(a,k)-S(a,k-1)},lower=1,upper=2)
+  output$root
+}
+
+root = matrix(0,3,length(k))
+
+for (i in 1:length(k)){
+  root[2,i]=round(solve(k[i]),4)
+}
+
+root[1,] = k
+root[3,] = B
+rownames(root) = c('k','A(k)','f(k)')
+root
+
+
+
+```
+
+
+## Question 3
+
+##answer
+```{r,eval=FALSE}
+set.seed(123)
+lambda = c(0.7, 0.3)
+lam = sample(lambda, size = 2000, replace = TRUE)
+y = rexp(2, rate = 1/(2*lam))
+N = 10 
+L = c(0.7, 0.3) 
+tol = .Machine$double.eps^0.5
+L.old =L+1
+for (j in 1:N) {
+  f1 = dexp(y,  rate=1/(2*L[1]))
+  f2 = dexp(y,  rate=1/(2*L[2]))
+  py = f1 / (f1 + f2 ) 
+  qy = f2 / (f1 + f2 ) 
+  mu1 = sum(y * py) / sum(py) 
+  mu2 = sum(y * qy) / sum(qy)
+  L = c(mu1, mu2) 
+  L = L / sum(L)
+  if (sum(abs(L - L.old)/L.old) < tol) break
+  L.old = L
+}
+
+print(list(lambda = L/sum(L), iter = j, tol = tol))
+```
+
+11-25
+
+##p204-1
+
+```{r,eval=FALSE}
+trims = c(0, 0.1, 0.2, 0.5)
+x = rcauchy(100)
+lapply(trims, function(trim) mean(x, trim = trim))##trim表示去掉异常值的比例，从trims直接一步映射到function求解去掉异常值比例后的100个柯西分布数据的均值
+lapply(trims, mean, x = x)##先从trims映射到mean函数，均值为c（0，0.1，0.2，0.5），再将100柯西分布生成的随机数带入
+##两种方法只是计算的执行顺序不同，且每次迭代都是与其他所有迭代隔离的，所以计算顺序并不重要，结果一样
+```
+
+
+##p204-5
+
+```{r,eval=FALSE}
+set.seed(123)
+attach(mtcars)
+
+##练习3
+formulas = list(
+  mpg ~ disp,
+  mpg ~ I(1 / disp),
+  mpg ~ disp + wt,
+  mpg ~ I(1 / disp) + wt
+)
+
+out1 = vector("list", length(formulas))##for循环
+for (i in seq_along(formulas)){
+  out1[[i]] = lm(formulas[[i]], data = mtcars)
+}
+out1
+
+l1 = lapply(formulas, function(x) lm(formula = x, data = mtcars))##lapply()
+l1
+
+rsq = function(mod) summary(mod)$r.squared
+r_square1 = lapply(l1, rsq)
+r_square1
+r_square2 = lapply(out1, rsq)
+r_square2
+
+##练习4
+bootstraps = lapply(1:10, function(i) {
+rows = sample(1:nrow(mtcars), rep = TRUE)
+mtcars[rows, ]
+})
+
+out2 = vector("list", length(formulas))##for循环
+for (i in seq_along(formulas)){
+  out2[[i]] = lm(formulas[[i]], data = bootstraps)
+}
+out2[1]
+
+l2 = lapply(formulas, function(x) lm(formula = x, data = bootstraps))##lapply()
+l2[1]
+
+rsq = function(mod) summary(mod)$r.squared
+r_square1 = lapply(l2[1], rsq)
+r_square1
+r_square2 = lapply(out2[1], rsq)
+r_square2
+```
+
+##p214-1
+
+```{r,eval=FALSE}
+set.seed(123)
+
+##a
+data1 = list(x=runif(10),y=rnorm(10),z = rcauchy(10))
+sd1 = vapply(data1,sd,FUN.VALUE = c("st"=0))
+sd1
+
+##b
+data2 = list(x=rexp(10),y=rt(10,df = 1),z = letters[1:10])
+
+judge = vapply(data2, is.numeric,logical(1))
+judge
+
+data3 = list()
+for (i in 1:length(judge)){
+  if (judge[i] == TRUE){data3[i]=data2[i]}
+  else{delete.response(data3[i])}
+  }
+
+sd2 = vapply(data3,sd,FUN.VALUE = c("st"=0))
+sd2
+
+```
+
+
+##p214-7
+
+```{r,eval=FALSE}
+library(parallel)
+set.seed(123)
+formulas = list(l1 = function(mtcars) glm(mtcars$mpg~mtcars$disp),l2=function(mtcars) glm(mtcars$mpg~I(1/mtcars$disp)),l3=function(mtcars) glm(mtcars$mpg~mtcars$disp+mtcars$wt),l4=function(mtcars) glm(mtcars$mpg~I(1/mtcars$disp)+mtcars$wt))
+cl = makeCluster(4)
+bootstraps1 = lapply(1:1000, function(i){
+  rows = sample(1:nrow(mtcars),rep = TRUE) 
+  mtcars[rows,]
+})
+system.time(sapply(bootstraps1, formulas[[1]]))
+system.time(parSapply(cl,bootstraps1, formulas[[1]]))
+```
+
+12-2
+
+## Question 
+
+1.You have already written an R function for Exercise 9.8 (page 278, Statistical Computing with R). Rewrite an Rcpp function for the same task. 
+
+2.Compare the generated random numbers by the two functions using qqplot. 
+
+3.Campare the computation time of the two functions with microbenchmark. 
+
+
+##(1)Rewrite an Rcpp function for Exercise 9.8.
+##(2)Compare the generated random numbers by the two functions using qqplot.
+##(3)Campare the computation time of the two functions with microbenchmark.
+```{r,eval=FALSE}
+library(Rcpp)
+library(microbenchmark)
+set.seed(123)   
+#Gibbs2 = function(N, X0){
+  #a = 1
+  #b = 1
+  #X = matrix(0, N, 2)
+  #X[1,] = X0   
+  #for(i in 2:N){
+    #X2 =  X[i-1, 2]
+    #X[i,1] = rbinom(1,25,X2)
+    #X1 = X[i,1]
+    #X[i,2] = rbeta(1,X1+a,25-X1+b)
+  #}
+  #return(X)
+#}
+X0 = c(0,0.5)
+N = 10          
+m = 5
+a = b =1
+#dir_cpp = 'D:/HERE/'
+#sourceCpp(paste0(dir_cpp,"Gibbs.cpp"))
+
+#GibbsR = Gibbs2(N, X0)
+#GibbsC = Gibbs1(N,m)
+#qqplot(GibbsR[,1],GibbsC[,1])
+#abline(a=0,b=1,col='black')
+#qqplot(GibbsR[,2],GibbsC[,2])
+#abline(a=0,b=1,col='black')
+
+#(time = microbenchmark(Gibbs1(N,m),Gibbs2(N, X0)))
+
+```
+
+
+##结论：(2)qqplot图上的点位于对角线附近，所以两种函数生成的随机数是类似的。(3)使用Cpp函数比使用R函数的运行时间要短得多.
+

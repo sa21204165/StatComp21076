@@ -1,0 +1,210 @@
+---
+title: "SVT and SVP for 'Statistical Computing"
+author: "Qingguo Wu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SVT and SVP for 'Statistical Computing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+__StatComp21076__ 
+This paper introduces some algorithms to approximate the matrix with minimum nuclear norm among all matrices obeying a set of convex constraints. This problem may be understood as the convex relaxation of a rank minimization problem, and arises in many important applications as in the task of recovering a large matrix from a small subset of its entries (the famous Netflixproblem)
+
+
+## Benchmarking _SVT_ , _SVP_ ,_WSVT_
+
+
+##(1)A Singular Value Thresholding Algorithm for Matrix Completion.
+Since the function $h_0(X) = \frac{1}{2}\|X-Y\|_{F}^{2}+\lambda\|X\|_{*}$  is strictly convex, it is easy to see that there exists a unique minimizer, and we thus need to prove that it is equal to $\mathcal{D}_{\lambda}(\boldsymbol{Y})$
+
+$$
+\mathcal{D}_{\lambda}(\boldsymbol{Y})=\arg \min _{\boldsymbol{X}}\left\{\frac{1}{2}\|\boldsymbol{X}-\boldsymbol{Y}\|_{F}^{2}+\lambda\|\boldsymbol{X}\|_{*}\right\}
+$$
+$$
+\left.\mathcal{D}_{\lambda}(\boldsymbol{Y}):=\boldsymbol{U \mathcal { D }}_{\lambda}(\boldsymbol{\Sigma}) \boldsymbol{V}^{T}, \quad \mathcal{D}_{\lambda}(\boldsymbol{\Sigma})=\operatorname{diag}\left(\left\{\sigma_{i}-\lambda\right)_{+}\right\}\right)
+$$
+Introducing an intermediate matrix $Y^{K}$, this algorithm may be expressed as
+$$
+\left\{\begin{array}{l}
+\boldsymbol{X}^{k}=\mathcal{D}_{\tau}\left(\boldsymbol{Y}^{k-1}\right) \\
+\boldsymbol{Y}^{k}=\boldsymbol{Y}^{k-1}+\delta_{k} \mathcal{P}_{\Omega}\left(\boldsymbol{M}-\boldsymbol{X}^{k}\right)
+\end{array}\right.
+$$
+We suggest stopping the algorithm when
+$$
+\frac{\left\|\mathcal{P}_{\Omega}\left(\boldsymbol{X}^{k}-\boldsymbol{M}\right)\right\|_{F}}{\left\|\mathcal{P}_{\Omega}(\boldsymbol{M})\right\|_{F}} \leq \epsilon
+$$
+The source R code for _SVT_ is as follows:
+```{r,eval=FALSE}
+SVT = function(M,step_size,tolerance,lamda,k_max){
+  p = dim(M)[1]
+  q = dim(M)[2]
+  p_q = min(p,q)
+  
+  X = matrix(0,p,q*k_max)
+  Y = matrix(0,p,q*k_max)
+
+  Y[1:p,1:q] = M
+  
+  for (i in 2:k_max){
+    Y_n_1 = Y[1:p,(i-1):(i+q-2)]
+    U = svd(Y_n_1)$u
+    V = svd(Y_n_1)$v
+    d = d_lamda = numeric(p_q)
+    
+    for (j in 1:p_q){
+      d[j] = svd(Y_n_1)$d[j]
+      d_lamda[j] = max((d[j] - lamda),0)
+    }
+    
+    s_d = diag(d_lamda)
+    X_n =  U%*%s_d%*%t(V)
+    X[1:p,(i+q-1):(i+2*q-2)] = X_n
+    
+    Y_n = Y_n_1 +( M - X_n)*step_size
+    Y[1:p,(i+q-1):(i+2*q-2)] = Y_n
+
+    if( norm((X_n-M),"F")/norm(M,"F") < tolerance){
+      iters = i
+      break
+    }else{
+      iters = k_max    }
+  }
+  
+  relative_error = norm((X_n-M),"F")
+
+  return(list(X_n,relative_error))
+}
+```
+
+
+
+##(2)Guaranteed Rank Minimization via Singular Value Projection
+This paper addresses the practically important problem of low-rank matrix completion, which can be seen as a special case ofrank minimization with affine constraints (ARMP).
+$$
+\mathcal{D}_{\lambda}(\boldsymbol{Y})=\arg \min _{\boldsymbol{X}}\left\{\frac{1}{2}\|\boldsymbol{X}-\boldsymbol{Y}\|_{F}^{2}+\lambda r(X)\right\}
+$$
+$$\frac{1}{2}\|\boldsymbol{X}-\boldsymbol{Y}\|_{F}^{2} \quad X \in C(K) = \{X:rank(X) \leq k\}$$
+
+The source R code for _SVP_ is as follows:
+```{r,eval=FALSE}
+SVP = function(M,step_size,tolerance,rank_r,k_max){
+  p = dim(M)[1]
+  q = dim(M)[2]
+  p_q = min(p,q)
+  
+  Y = X = matrix(0,p,q*k_max)
+
+  Y[1:p,1:q] = M
+  
+  for (i in 2:k_max){
+    Y_n_1 = Y[1:p,(i-1):(i+q-2)]
+    U = svd(Y_n_1)$u
+    V = svd(Y_n_1)$v
+    d  = svd(Y_n_1)$d
+    
+    d_r = d[1:rank_r]
+    
+    U_r = U[1:p,1:rank_r]
+    V_r = V[1:q,1:rank_r]
+    s_d = diag(d_r)
+    
+    X_n =  U_r%*%s_d%*%t(V_r)
+    X[1:p,(i+q-1):(i+2*q-2)] = X_n
+    
+    Y_n = Y_n_1 + (M - X_n)*step_size
+    Y[1:p,(i+q-1):(i+2*q-2)] = Y_n
+
+    if( norm((X_n-M),"F")/norm(M,"F") < tolerance){
+      iters = i
+      break
+    }else{
+      iters = k_max    }
+  }
+  
+  relative_error = norm((X_n-M),"F")
+
+  return(list(X_n,relative_error))
+}
+```
+
+
+##(3)Nonconvex Nonsmooth Low Rank Minimization via Iteratively Reweighted Nuclear Norm
+The adaptive nuclear norm is defined as the weighted sum of the singular values of the matrix, and it is generally non-convex under the natural restriction that the weight decreases with the singular value. We show that the proposed non-convex penalized regression method has a global optimal solution obtained from an adaptively soft-thresholded singular value decomposition.
+
+$$
+\mathcal{D}_{\lambda}(\boldsymbol{Y})=\arg \min _{\boldsymbol{X}}\left\{\frac{1}{2}\|\boldsymbol{X}-\boldsymbol{Y}\|_{F}^{2}+\lambda\|\boldsymbol{X}\|_{\lambda*}\right\}
+$$
+$$
+\left.X = \mathcal{D}_{\lambda\omega}(\boldsymbol{Y}):=\boldsymbol{U \mathcal { D }}_{\lambda\omega}(\boldsymbol{\Sigma}) \boldsymbol{V}^{T}, \quad \mathcal{D}_{\lambda\omega}(\boldsymbol{\Sigma})=\operatorname{diag}\left(\left\{\sigma_{i}-\lambda\omega_{i}\right)_{+}\right\}\right)
+$$
+
+The source R code for _WSVT_ is as follows:
+
+```{r}
+WSVT = function(M,w,lamda){
+  p = dim(M)[1]
+  q = dim(M)[2]
+  p_q = min(p,q)
+  
+  L = d = d_lamda = numeric(p_q)
+  
+  for (i in 1:(p_q-1)){
+    if (w[i] >= w[i+1] ){L[i] = 1
+  }else{
+    L[i] = 0
+  }}
+  
+  for (j in 1:p_q){
+    if (sum(L) == p_q-1){
+      d[j] = svd(M)$d[j]
+      d_lamda[j] = max((d[j] - lamda*w[j]),0)
+    }
+  }
+  
+  s_d = diag(d_lamda)
+  U = svd(M)$u
+  V = svd(M)$v
+  X =  U%*%s_d%*%t(V)
+
+  relative_error = norm((X-M),"F")
+
+  return(list(X,relative_error))
+}
+
+
+```
+
+
+
+```{r,eval=TRUE}
+library(StatComp21076)
+set.seed(1)
+M1 = matrix(rnorm(25),5,5)
+M2 = matrix(rnorm(25),5,5)
+M = M1%*%M2
+k = c(10,100,1000)
+
+t1 = SVT(M, step_size = 1, tolerance = 0.01, lamda = 3, k_max = k[1])[2]
+p1 = SVP(M, step_size = 1, tolerance = 0.01, rank_r = 3, k_max = k[1])[2]
+t2 = SVT(M, step_size = 1, tolerance = 0.01, lamda = 3, k_max = k[2])[2]
+p2 = SVP(M, step_size = 1, tolerance = 0.01, rank_r = 3, k_max = k[2])[2]
+t3 = SVT(M, step_size = 1, tolerance = 0.01, lamda = 3, k_max = k[3])[2]
+p3 = SVP(M, step_size = 1, tolerance = 0.01, rank_r = 3, k_max = k[3])[2]
+WSVT(M,w = c(0.5,0.4,0.1,0.2,0.1),lamda=3)[2]
+
+r_t = matrix(c(t1,p1,t2,p2,t3, p3),2,3)
+rownames(r_t) = c("SVT","SVP")
+colnames(r_t) = paste("k_max=",k)
+knitr::kable(r_t)
+
+```
+
+Time complexity of SVT is O(k_max*p_q) > Time complexity of SVP is O(k_max).
+Relative_error of SVT < Relative_error of SVT .
+The best algorithm is WSVT,but its conditions are too strict.
+
